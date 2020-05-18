@@ -28,21 +28,6 @@ function generateRandomString() {
   return url
 };
 
-
-
-function urlsForUser(id, urlDatabase) {
-  urlsForUserId = {};
-  for (let shortURL in urlDatabase) {
-    if (id === urlDatabase[shortURL].userID) {
-      urlsForUserId[shortURL] = {userID: urlDatabase[shortURL].shortURL,
-        longURL: urlDatabase[shortURL].longURL,
-        shortURL: urlDatabase[shortURL].shortURL
-                                   };
-    }
-  }
-  return urlsForUserId;
-}
-
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3RandomID"}, 
   "9sm5xK": { longURL: "http://www.google.com", userID: "user3RandomID"}
@@ -86,13 +71,14 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-//---------LOG OUT-----------
+//---------LOG OUT-----------//
+
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
-//--------INDEX PAGE--------
+//--------INDEX PAGE--------//
 
 //ROUTE PASSES THE URL DATA TO INDEX TEMPLATE
 app.get("/urls", (req, res) => {
@@ -105,7 +91,7 @@ app.get("/urls", (req, res) => {
   }
 });
 
-//ROUTE DELETES URL
+//ROUTE DELETES URL//
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = req.session.user_id;
   let shortURL = req.params.shortURL;
@@ -113,44 +99,21 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.status(403).send("Please <a href='/login'>Log in.</a>");
   } else if (userID !== urlDatabase[req.params.shortURL].userID) {
     res
-      .status(403)
-      .send("Impossible to delete (Belongs to a different user)");
+      .status(403).send("This URL belongs to a different user.");
   } else {
     delete urlDatabase[shortURL];
-
     res.redirect("/urls");
   }
 });
 
-// app.post("/urls/:shortURL/edit", (req, res) => {
-//   const userID = req.session.user_id
-//   const urlID = urlDatabase[req.params.shortURL];
-//   if (userID) {
-//     urlID[req.body.longURL] = req.params.longURL;
-//     //Updates longURL in database
-//     urlDatabase[req.params.shortURL].longURL = urlID.longURL;
-//     res.redirect("/urls");
-//   }
-//   else {
-//     res.status(403).send("Please <a href='/login'>Log in.</a>");
-//   }
-// });
-
-//ROUTE SENDS USER TO EDIT URL PAGE
-// app.post("/urls/:shortURL/edit", (req, res) => {
-//   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
-//   res.render("urls_show", templateVars);
-// });
-
 app.post("/urls/:shortURL", (req, res) => {
   // if user logged out, redirect to login page. If short url does not belong to user show 403 status
-  if (!req.session.user_id){
-    res.status(401);
-    res.send('You are not logged in. <a href="/login">Please Login.</a>');
+  let userID = req.session.user_id;
+  if (!userID) {
+    res.status(403).send("Please <a href='/login'>Log in.</a>");
   }
-  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    res.status(403);
-    res.send('03 ERROR: This URL doesnt belong to you. <a href="/urls/new">See your TinyLinks here</a>');
+  if (userID !== urlDatabase[req.params.shortURL].userID) {
+    res.status(403).send("This URL belongs to a different user.");
   }
 
   let longURL = req.body.longURL;
@@ -158,7 +121,7 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
-//--------REGISTER PAGE---------
+//--------REGISTER PAGE---------//
 
 app.get("/register", (req, res) => {
   res.render("urls_register", { user: users[req.session.user_id] });
@@ -184,18 +147,19 @@ app.post("/register", (req, res) => {
   };
 });
 
-//--------LOGIN PAGE----------
+//--------LOGIN PAGE----------//
+
 app.post("/login", (req, res) => {
   let loginUser = getUserByEmail(req.body.email, users);
   if (!loginUser) {
     res.status(403).send("Email doesn't match. Please <a href='/register'>Register.</a>");
-    return;
-  } else {
+    return; 
+  } else { 
     if (bcrypt.compareSync(loginUser.password, req.body.password)) {
       res.status(403).send("Invalid password");
       return;
-    } else {
-      req.session.user_id = loginUser.id;
+    } else {   
+      req.session.user_id = loginUser;
       res.redirect("/urls");
     }
     }
@@ -211,7 +175,7 @@ app.get("/login", (req, res) => {
   }
 });
 
-//--------NEW PAGE----------
+//--------NEW PAGE----------//
 
 //ROUTE SENDS USER TO THE URL CREATION PAGE
 app.get("/urls/new", (req, res) => {
