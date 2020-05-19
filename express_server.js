@@ -143,6 +143,7 @@ app.post("/register", (req, res) => {
                       password: hashedPassword,
                       database: {} };
     req.session.user_id = userID;
+    // console.log(userID);
     res.redirect("/urls");
   };
 });
@@ -150,19 +151,19 @@ app.post("/register", (req, res) => {
 //--------LOGIN PAGE----------//
 
 app.post("/login", (req, res) => {
-  let loginUser = getUserByEmail(req.body.email, users);
+  let loginUser = getUserByEmail(req.body.email, users); // check req.body.email // 
+  // console.log(req.body.email);
+  console.log(loginUser);
   if (!loginUser) {
     res.status(403).send("Email doesn't match. Please <a href='/register'>Register.</a>");
-    return; 
-  } else { 
-    if (bcrypt.compareSync(loginUser.password, req.body.password)) {
+  }
+  if (bcrypt.compareSync(loginUser[req.body.password], req.body.password)) {
       res.status(403).send("Invalid password");
-      return;
     } else {   
       req.session.user_id = loginUser;
       res.redirect("/urls");
     }
-    }
+    
 });
 
 app.get("/login", (req, res) => {
