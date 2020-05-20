@@ -163,7 +163,7 @@ app.get("/login", (req, res) => {
   let user = req.session.user_id;
   if (!user) {
     // user is not logged in
-    res.render("urls_login", user);
+    res.render("urls_login", {user});
   } else {
     res.redirect("/urls");
   }
@@ -175,7 +175,7 @@ app.get("/login", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let userID = users[req.session.user_id];
   let templateVars = {
-    user: req.session.user_id,
+    user: userID,
     urls: urlDatabase,
     user_id: users[userID]
   };
@@ -205,7 +205,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
   if (url) {
     let templateVars = {
-      shortURL: req.params.shortURL, longURL: url, user: req.session.user_id
+      shortURL: req.params.shortURL, longURL: url, user: users[req.session.user_id]
     };
     res.render("urls_show", templateVars);
   } else {
