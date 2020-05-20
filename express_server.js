@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
 const { getUserByEmail } = require("./helpers.js");
+const { generateRandomString } = require("./helpers.js")
 
 const password = "purple-monkey-dinosaur"; // found in the req.params object
 const hashedPassword = bcrypt.hashSync(password, 10);
@@ -19,36 +20,24 @@ app.use(cookieSession({
   // maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
-function generateRandomString() {
-    let url = "";
-  const length = 6;
-  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < length; i++)
-    url += chars.charAt(Math.floor(Math.random() * chars.length));
-  return url
-};
-
-const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3RandomID"}, 
-  "9sm5xK": { longURL: "http://www.google.com", userID: "user3RandomID"}
-};
+const urlDatabase = {};
 
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  },
-  "user3RandomID": {
-    id: "user3RandomID", 
-    email: "e.aizprua@hotmail.ca", 
-    password: "12345"
-  }
+//   "userRandomID": {
+//     id: "userRandomID", 
+//     email: "user@example.com", 
+//     password: "purple-monkey-dinosaur"
+//   },
+//  "user2RandomID": {
+//     id: "user2RandomID", 
+//     email: "user2@example.com", 
+//     password: "dishwasher-funk"
+//   },
+//   "user3RandomID": {
+//     id: "user3RandomID", 
+//     email: "e.aizprua@hotmail.ca", 
+//     password: "12345"
+//   }
 };
 
 // THIS PATH(/) IS THE DEFAULT HOMEPAGE.
