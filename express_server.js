@@ -23,13 +23,13 @@ const users = {};
 
 function getUrlByUser(ID) {
   let urlCopy = {};
-  for (url in urlDatabase) {
+  for (let url in urlDatabase) {
     if (urlDatabase[url]["userID"] === ID) {
-      urlCopy[url] = {longURL: urlDatabase[url].longURL, userID: ID}
+      urlCopy[url] = {longURL: urlDatabase[url].longURL, userID: ID};
     }
   }
   return urlCopy;
-};
+}
 
 // THIS PATH(/) IS THE DEFAULT HOMEPAGE.
 app.get("/", (req, res) => {
@@ -48,6 +48,7 @@ app.get("/urls.json", (req, res) => {
 
 //---------LOG OUT-----------//
 
+//ROUTE LOGS USER OUT
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
@@ -67,21 +68,21 @@ app.get("/urls", (req, res) => {
   }
 });
 
-//ROUTE DELETES URL//
+//ROUTE DELETES USER'S URL//
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = req.session.user_id;
   let shortURL = req.params.shortURL;
   if (userID === undefined) {
     res.status(403).send("Please <a href='/login'>Log in.</a>");
   } else if (userID !== urlDatabase[req.params.shortURL].userID) {
-    res
-      .status(403).send("This URL belongs to a different user.");
+    res.status(403).send("This URL belongs to a different user.");
   } else {
     delete urlDatabase[shortURL];
     res.redirect("/urls");
   }
 });
 
+//ROUTE UPDATES USER'S URL
 app.post("/urls/:shortURL", (req, res) => {
   // if user logged out, redirect to login page. If short url does not belong to user show 403 status
   let userID = req.session.user_id;
@@ -99,10 +100,12 @@ app.post("/urls/:shortURL", (req, res) => {
 
 //--------REGISTER PAGE---------//
 
+//ROUTE SENDS USER TO REGISTRATION PAGE
 app.get("/register", (req, res) => {
   res.render("urls_register", { user: users[req.session.user_id] });
 });
 
+//ROUTE REGISTERS NEW USER
 app.post("/register", (req, res) => {
   for (let ID in users) {
     if (req.body.email === users[ID].email) {
@@ -125,6 +128,7 @@ app.post("/register", (req, res) => {
 
 //--------LOGIN PAGE----------//
 
+//ROUTE LOGS USER IN
 app.post("/login", (req, res) => {
 
   if (req.body.email && req.body.password) {
@@ -154,12 +158,12 @@ app.post("/login", (req, res) => {
   
 });
 
-
+//ROUTE SENDS USER TO LOGIN PAGE
 app.get("/login", (req, res) => {
   let user = req.session.user_id;
   if (!user) {
     // user is not logged in
-    res.render("urls_login", {user});
+    res.render("urls_login", user);
   } else {
     res.redirect("/urls");
   }
@@ -170,7 +174,6 @@ app.get("/login", (req, res) => {
 //ROUTE SENDS USER TO THE URL CREATION PAGE
 app.get("/urls/new", (req, res) => {
   let userID = users[req.session.user_id];
-  // console.log(userID);
   let templateVars = {
     user: req.session.user_id,
     urls: urlDatabase,
@@ -192,7 +195,7 @@ app.post("/urls", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//--------SHOW PAGE---------
+//--------SHOW URL PAGE---------
 
 //ROUTE SENDS USER TO THE /SHORTURL PAGE
 app.get("/urls/:shortURL", (req, res) => {
