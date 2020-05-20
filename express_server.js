@@ -92,7 +92,7 @@ app.post("/urls/:shortURL", (req, res) => {
     res.status(403).send("This URL belongs to a different user.");
   }
 
-  let longURL = req.body.longURL;
+  let longURL = req.body.newURL;
   urlDatabase[req.params.shortURL].longURL = longURL;
   res.redirect(`/urls`);
 });
