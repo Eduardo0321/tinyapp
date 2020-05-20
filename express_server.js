@@ -4,8 +4,8 @@ const PORT = 8080; //default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
-const { getUserByEmail } = require("./helpers.js");
 const { generateRandomString } = require("./helpers.js");
+// const { getUrlByUser } = require("./helpers.js");
 
 const password = "purple-monkey-dinosaur"; // found in the req.params object
 const hashedPassword = bcrypt.hashSync(password, 10);
@@ -19,27 +19,21 @@ app.use(cookieSession({
 
 const urlDatabase = {};
 
-const users = {
-//   "userRandomID": {
-//     id: "userRandomID",
-//     email: "user@example.com",
-//     password: "purple-monkey-dinosaur"
-//   },
-//  "user2RandomID": {
-//     id: "user2RandomID",
-//     email: "user2@example.com",
-//     password: "dishwasher-funk"
-//   },
-//   "user3RandomID": {
-//     id: "user3RandomID",
-//     email: "e.aizprua@hotmail.ca",
-//     password: "12345"
-//   }
+const users = {};
+
+function getUrlByUser(ID) {
+  let urlCopy = {};
+  for (url in urlDatabase) {
+    if (urlDatabase[url]["userID"] === ID) {
+      urlCopy[url] = {longURL: urlDatabase[url].longURL, userID: ID}
+    }
+  }
+  return urlCopy;
 };
 
 // THIS PATH(/) IS THE DEFAULT HOMEPAGE.
 app.get("/", (req, res) => {
-  let userID = users[req.session.user_id];
+  let userID = req.session.user_id;
   if (userID) {
     res.redirect("/urls");
   } else {
@@ -50,11 +44,6 @@ app.get("/", (req, res) => {
 // THIS PATH(/urls.json) SHOWS THE urlDatabase in the browser with the help of JSON.
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-//THIS PATH(/hello) PRINTS THIS HTML TEXT ON THE BROWSER(HELLO WORLD).
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 //---------LOG OUT-----------//
@@ -68,9 +57,10 @@ app.post("/logout", (req, res) => {
 
 //ROUTE PASSES THE URL DATA TO INDEX TEMPLATE
 app.get("/urls", (req, res) => {
-  let userID = users[req.session.user_id];
+  let userID = req.session.user_id;
   if (userID) {
-    let templateVars = { urls: urlDatabase, user: users[req.session.user_id] };
+    let userUrlDatabase = getUrlByUser(userID);
+    let templateVars = { urls: userUrlDatabase, user: users[req.session.user_id] };
     res.render("urls_index", templateVars);
   } else {
     res.status(403).send("Please <a href='/login'>Log in.</a>");
@@ -103,8 +93,8 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 
   let longURL = req.body.longURL;
-  urlDatabase[req.params.shortURL].long = longURL;
-  res.redirect(`/urls/${req.params.shortURL}`);
+  urlDatabase[req.params.shortURL].longURL = longURL;
+  res.redirect(`/urls`);
 });
 
 //--------REGISTER PAGE---------//
@@ -129,7 +119,6 @@ app.post("/register", (req, res) => {
       password: hashedPassword,
       database: {} };
     req.session.user_id = userID;
-    // console.log(userID);
     res.redirect("/urls");
   }
 });
@@ -207,7 +196,7 @@ app.post("/urls", (req, res) => {
 
 //ROUTE SENDS USER TO THE /SHORTURL PAGE
 app.get("/urls/:shortURL", (req, res) => {
-  const url = urlDatabase[req.params.shortURL];
+  const url = urlDatabase[req.params.shortURL].longURL;
   if (!req.session.user_id) {
     res.status(404).send("Please <a href='/login'>Log in.</a>");
   }
