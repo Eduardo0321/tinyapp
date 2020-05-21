@@ -200,8 +200,13 @@ app.post("/urls", (req, res) => {
 //ROUTE SENDS USER TO THE /SHORTURL PAGE
 app.get("/urls/:shortURL", (req, res) => {
   const url = urlDatabase[req.params.shortURL].longURL;
-  if (!req.session.user_id) {
+  console.log(url);
+  const userID = urlDatabase[req.params.shortURL].userID;
+    if (!req.session.user_id) {
     res.status(404).send("Please <a href='/login'>Log in.</a>");
+  }
+    if (req.session.user_id !== userID) {
+    res.status(404).send("This URL doesn't belong to this user. Go back to <a href='/urls'>Homepage.</a>");
   }
   if (url) {
     let templateVars = {
