@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
 const { generateRandomString } = require("./helpers.js");
-// const { getUrlByUser } = require("./helpers.js");
+const { getUrlByUser } = require("./helpers.js");
 
 const password = "purple-monkey-dinosaur"; // found in the req.params object
 const hashedPassword = bcrypt.hashSync(password, 10);
@@ -20,16 +20,6 @@ app.use(cookieSession({
 const urlDatabase = {};
 
 const users = {};
-
-function getUrlByUser(ID) {
-  let urlCopy = {};
-  for (let url in urlDatabase) {
-    if (urlDatabase[url]["userID"] === ID) {
-      urlCopy[url] = {longURL: urlDatabase[url].longURL, userID: ID};
-    }
-  }
-  return urlCopy;
-}
 
 // THIS PATH(/) IS THE DEFAULT HOMEPAGE.
 app.get("/", (req, res) => {
@@ -60,7 +50,7 @@ app.post("/logout", (req, res) => {
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   if (userID) {
-    let userUrlDatabase = getUrlByUser(userID);
+    let userUrlDatabase = getUrlByUser(userID, urlDatabase);
     let templateVars = { urls: userUrlDatabase, user: users[req.session.user_id] };
     res.render("urls_index", templateVars);
   } else {
@@ -200,12 +190,11 @@ app.post("/urls", (req, res) => {
 //ROUTE SENDS USER TO THE /SHORTURL PAGE
 app.get("/urls/:shortURL", (req, res) => {
   const url = urlDatabase[req.params.shortURL].longURL;
-  console.log(url);
   const userID = urlDatabase[req.params.shortURL].userID;
-    if (!req.session.user_id) {
+  if (!req.session.user_id) {
     res.status(404).send("Please <a href='/login'>Log in.</a>");
   }
-    if (req.session.user_id !== userID) {
+  if (req.session.user_id !== userID) {
     res.status(404).send("This URL doesn't belong to this user. Go back to <a href='/urls'>Homepage.</a>");
   }
   if (url) {
@@ -220,14 +209,9 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //ROUTE SENDS USER TO longURL webpage
 app.get("/u/:shortURL", (req, res) => {
-  let user = req.session.user_id;
   const url = urlDatabase[req.params.shortURL];
-  if (user) {
-    let longURL = url.longURL;
-    res.redirect(longURL);
-  } else {
-    res.status(404).send("URL does not exist");
-  }
+  let longURL = url.longURL;
+  res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
